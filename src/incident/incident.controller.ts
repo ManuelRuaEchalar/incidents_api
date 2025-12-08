@@ -27,14 +27,21 @@ export class IncidentController {
     return this.incidentService.create(user.user_id, dto);
   }
 
+  // Obtener TODOS los incidentes (mapa público)
   @Get()
-  findAll(@GetUser() user: User) {
-    return this.incidentService.findAll(user.user_id, user.role);
+  findAll() {
+    return this.incidentService.findAll();
+  }
+
+  // Obtener solo MIS incidentes (sección "Mis Reportes")
+  @Get('my-incidents')
+  findMyIncidents(@GetUser() user: User) {
+    return this.incidentService.findMyIncidents(user.user_id);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
-    return this.incidentService.findOne(id, user.user_id, user.role);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.incidentService.findOne(id);
   }
 
   @Patch(':id')

@@ -1,0 +1,233 @@
+===========================================
+API ROUTES - INCIDENTS API
+===========================================
+
+BASE URL: http://localhost:3000
+
+===========================================
+AUTH ROUTES
+===========================================
+
+POST /auth/signup
+Body: {
+  "username": "string",
+  "email": "string",
+  "password": "string",
+  "profile_pic_url": "string (optional)",
+  "role": "CITIZEN | ADMIN (optional, default: CITIZEN)"
+}
+Response: { "access_token": "string" }
+
+POST /auth/signin
+Body: {
+  "email": "string",
+  "password": "string"
+}
+Response: { "access_token": "string" }
+
+===========================================
+USER ROUTES (Protected - JWT Required)
+===========================================
+
+GET /users/me
+Headers: Authorization: Bearer {token}
+Response: User object
+
+PATCH /users
+Headers: Authorization: Bearer {token}
+Body: { } (to be implemented)
+
+===========================================
+CITY ROUTES (Protected - JWT Required)
+===========================================
+
+GET /cities
+Headers: Authorization: Bearer {token}
+Response: Array of cities with incident count
+
+GET /cities/:id
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Single city with incident count
+
+POST /cities (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Body: {
+  "name": "string (max 100 chars)",
+  "code": "string (max 20 chars, optional)"
+}
+Response: Created city
+
+PATCH /cities/:id (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Body: {
+  "name": "string (optional)",
+  "code": "string (optional)"
+}
+Response: Updated city
+
+DELETE /cities/:id (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Deleted city
+
+===========================================
+CATEGORY ROUTES (Protected - JWT Required)
+===========================================
+
+GET /categories
+Headers: Authorization: Bearer {token}
+Response: Array of categories with incident count
+
+GET /categories/:id
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Single category with incident count
+
+POST /categories (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Body: {
+  "name": "string (max 100 chars)",
+  "description": "string (optional)"
+}
+Response: Created category
+
+PATCH /categories/:id (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Body: {
+  "name": "string (optional)",
+  "description": "string (optional)"
+}
+Response: Updated category
+
+DELETE /categories/:id (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Deleted category
+
+===========================================
+STATUS ROUTES (Protected - JWT Required)
+===========================================
+
+GET /statuses
+Headers: Authorization: Bearer {token}
+Response: Array of statuses with incident count
+
+GET /statuses/:id
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Single status with incident count
+
+POST /statuses (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Body: {
+  "name": "string (max 50 chars)",
+  "description": "string (max 150 chars)"
+}
+Response: Created status
+
+PATCH /statuses/:id (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Body: {
+  "name": "string (optional)",
+  "description": "string (optional)"
+}
+Response: Updated status
+
+DELETE /statuses/:id (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Deleted status
+
+===========================================
+INCIDENT ROUTES (Protected - JWT Required)
+===========================================
+
+GET /incidents
+Headers: Authorization: Bearer {token}
+Response: Array of ALL incidents (for public map)
+
+GET /incidents/my-incidents
+Headers: Authorization: Bearer {token}
+Response: Array of user's own incidents (for "My Reports" section)
+
+GET /incidents/:id
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Single incident detail (publicly viewable)
+
+POST /incidents
+Headers: Authorization: Bearer {token}
+Body: {
+  "category_id": number,
+  "city_id": number (optional),
+  "latitude": number (decimal 10,8),
+  "longitude": number (decimal 11,8),
+  "description": "string (optional)",
+  "photo_url": "string (max 255 chars, optional)",
+  "address_ref": "string (max 200 chars, optional)"
+}
+Response: Created incident with relations
+Note: user_id is automatically set from JWT token
+
+PATCH /incidents/:id
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Body: {
+  "category_id": number (optional),
+  "status_id": number (optional),
+  "city_id": number (optional),
+  "latitude": number (optional),
+  "longitude": number (optional),
+  "description": "string (optional)",
+  "photo_url": "string (optional)",
+  "address_ref": "string (optional)"
+}
+Response: Updated incident with relations
+- CITIZEN: Only their own incidents
+- ADMIN: Any incident
+
+DELETE /incidents/:id
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Response: Deleted incident
+- CITIZEN: Only their own incidents
+- ADMIN: Any incident
+
+PATCH /incidents/:id/status (ADMIN ONLY)
+Headers: Authorization: Bearer {token}
+Params: id (number)
+Body: {
+  "status_id": number
+}
+Response: Updated incident with new status
+
+===========================================
+NOTES
+===========================================
+
+1. All routes except /auth/* require JWT token in Authorization header
+2. JWT token expires in 15 minutes
+3. ADMIN role required for:
+   - All City CRUD operations (except GET)
+   - All Category CRUD operations (except GET)
+   - All Status CRUD operations (except GET)
+   - Updating incident status
+4. CITIZEN users can:
+   - Create incidents
+   - View/Edit/Delete only their own incidents
+5. Default status_id for new incidents is 1
+6. Coordinates use Decimal type for precision
+7. All timestamps are automatically managed by Prisma
+
+===========================================
+ERROR RESPONSES
+===========================================
+
+401 Unauthorized: Missing or invalid JWT token
+403 Forbidden: Insufficient permissions or "Credentials taken"
+404 Not Found: Resource not found
+400 Bad Request: Validation errors

@@ -27,12 +27,9 @@ export class IncidentService {
     });
   }
 
-  async findAll(userId?: number, role?: string) {
-    // Admin puede ver todos, ciudadanos solo los suyos
-    const where = role === 'ADMIN' ? {} : { user_id: userId };
-
+  // Obtener TODOS los incidentes (para el mapa público)
+  async findAll() {
     return this.prisma.incident.findMany({
-      where,
       include: {
         user: {
           select: {
@@ -51,7 +48,29 @@ export class IncidentService {
     });
   }
 
-  async findOne(id: number, userId?: number, role?: string) {
+  // Obtener solo los incidentes del usuario autenticado (para "Mis Reportes")
+  async findMyIncidents(userId: number) {
+    return this.prisma.incident.findMany({
+      where: { user_id: userId },
+      include: {
+        user: {
+          select: {
+            user_id: true,
+            username: true,
+            email: true,
+          },
+        },
+        category: true,
+        status: true,
+        city: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+  }
+
+  async findOne(id: number) {
     const incident = await this.prisma.incident.findUnique({
       where: { incident_id: id },
       include: {
@@ -72,16 +91,11 @@ export class IncidentService {
       throw new NotFoundException(`Incident with ID ${id} not found`);
     }
 
-    // Verificar permisos: solo el dueño o admin pueden ver
-    if (role !== 'ADMIN' && incident.user_id !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
-
     return incident;
   }
 
   async update(id: number, userId: number, role: string, dto: UpdateIncidentDto) {
-    const incident = await this.findOne(id, userId, role);
+    const incident = await this.findOne(id);
 
     // Solo el dueño puede actualizar (o admin)
     if (role !== 'ADMIN' && incident.user_id !== userId) {
@@ -107,7 +121,7 @@ export class IncidentService {
   }
 
   async remove(id: number, userId: number, role: string) {
-    const incident = await this.findOne(id, userId, role);
+    const incident = await this.findOne(id);
 
     // Solo el dueño puede eliminar (o admin)
     if (role !== 'ADMIN' && incident.user_id !== userId) {
