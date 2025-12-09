@@ -28,25 +28,25 @@ export class IncidentService {
   }
 
   // Obtener TODOS los incidentes (para el mapa público)
-  async findAll() {
-    return this.prisma.incident.findMany({
-      include: {
-        user: {
-          select: {
-            user_id: true,
-            username: true,
-            email: true,
-          },
-        },
-        category: true,
-        status: true,
-        city: true,
-      },
-      orderBy: {
-        created_at: 'desc',
-      },
-    });
-  }
+  // Obtener TODOS los incidentes (para el mapa público)
+async findAll() {
+  return this.prisma.incident.findMany({
+    select: {
+      incident_id: true,
+      category_id: true,
+      city_id: true,
+      latitude: true,
+      longitude: true,
+      description: true,
+      photo_url: true,
+      address_ref: true,
+      created_at: true,
+    },
+    orderBy: {
+      created_at: 'desc',
+    },
+  });
+}
 
   // Obtener solo los incidentes del usuario autenticado (para "Mis Reportes")
   async findMyIncidents(userId: number) {

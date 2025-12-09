@@ -14,29 +14,31 @@ export class AuthService {
     ) {}
    
     async signup(dto: SignUpDto) {
-        const hash = await argon.hash(dto.password);
-        try {
-            const user = await this.prisma.user.create({
-                data: {
-                    username: dto.username,
-                    email: dto.email,
-                    password_hash: hash,
-                },
-                select: {
-                    user_id: true,
-                    username: true,
-                    email: true,
-                    created_at: true,
-                }
-            });
-            return this.signToken(user.user_id, user.email);
-        } catch (error) {
-            if (error.code === 'P2002') {
-                throw new ForbiddenException('Credentials taken');
+    const hash = await argon.hash(dto.password);
+    try {
+        const user = await this.prisma.user.create({
+            data: {
+                username: dto.username,
+                email: dto.email,
+                password_hash: hash,
+                role: dto.role || 'CITIZEN',  // ← Agrega esta línea
+            },
+            select: {
+                user_id: true,
+                username: true,
+                email: true,
+                role: true,
+                created_at: true,
             }
-            throw error;      
+        });
+        return this.signToken(user.user_id, user.email, user.role);
+    } catch (error) {
+        if (error.code === 'P2002') {
+            throw new ForbiddenException('Credentials taken');
         }
+        throw error;      
     }
+}
 
     async signin(dto: SignInDto) {
         // find user by email
@@ -56,23 +58,24 @@ export class AuthService {
             throw new ForbiddenException('Credentials incorrect');
         }
 
-        return this.signToken(user.user_id, user.email);
+        return this.signToken(user.user_id, user.email, user.role);
     }
 
-    async signToken(userId: number, email: string): Promise<{ access_token: string }> {
-        const payload = {
-            sub: userId,
-            email
-        };
-        const secret = this.config.get('JWT_SECRET');
+    async signToken(userId: number, email: string, role: string): Promise<{ access_token: string }> {
+  const payload = {
+    sub: userId,
+    email,
+    role,  // ← Asegúrate de incluir el role aquí
+  };
+  const secret = this.config.get('JWT_SECRET');
 
-        const token = await this.jwt.signAsync(payload, {
-            expiresIn: '15m',
-            secret: secret,
-        });
+  const token = await this.jwt.signAsync(payload, {
+    expiresIn: '15m',
+    secret: secret,
+  });
 
-        return {
-            access_token: token,
-        };
-    }
+  return {
+    access_token: token,
+  };
+}
 }
