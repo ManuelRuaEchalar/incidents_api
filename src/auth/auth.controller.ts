@@ -5,7 +5,7 @@ import { SignInDto, SignUpDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post('signup')
   async signup(
@@ -14,10 +14,10 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.signup(dto);
-    
+
     // Detectar si es cliente móvil o web
     const isMobile = this.isMobileClient(userAgent);
-    
+
     if (isMobile) {
       // Para móvil: devolver token en JSON
       return result;
@@ -35,9 +35,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.signin(dto);
-    
+
     const isMobile = this.isMobileClient(userAgent);
-    
+
     if (isMobile) {
       return result;
     } else {
@@ -48,16 +48,17 @@ export class AuthController {
 
   private isMobileClient(userAgent: string): boolean {
     // Detectar si es la app Flutter
-    return userAgent?.toLowerCase().includes('dart') || 
-           userAgent?.toLowerCase().includes('flutter');
+    return userAgent?.toLowerCase().includes('dart') ||
+      userAgent?.toLowerCase().includes('flutter');
   }
 
   private setAuthCookie(res: Response, token: string): void {
     res.cookie('access_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true en producción
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000, // 15 minutos
+      secure: process.env.NODE_ENV === 'production',
+      // CAMBIO CRÍTICO AQUÍ:
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 15 * 60 * 1000,
     });
   }
 }

@@ -84,18 +84,6 @@ export class IncidentService {
   async findMyIncidents(userId: number) {
     return this.prisma.incident.findMany({
       where: { user_id: userId },
-      include: {
-        user: {
-          select: {
-            user_id: true,
-            username: true,
-            email: true,
-          },
-        },
-        category: true,
-        status: true,
-        city: true,
-      },
       orderBy: {
         created_at: 'desc',
       },

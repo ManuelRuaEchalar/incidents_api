@@ -31,11 +31,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         user_id: payload.sub,
       },
     });
-    
+
     if (!user) {
       return null;
     }
-    
+
     const { password_hash, ...result } = user;
     return result;
   }
