@@ -1,28 +1,25 @@
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsInt,
-  IsString,
-  IsNumber,
-  MaxLength,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsLatitude, IsLongitude } from 'class-validator';
+import { Type } from 'class-transformer';
+// Elimina la importación de @prisma/client... no la necesitas aquí.
 
 export class CreateIncidentDto {
-  @IsInt()
+  @IsNumber()
   @IsNotEmpty()
   category_id: number;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
   city_id?: number;
 
-  @IsNumber()
   @IsNotEmpty()
-  latitude: number;
+  @IsLatitude() // Valida que sea una latitud real (-90 a 90)
+  @Type(() => Number) // Convierte string a number si es necesario
+  latitude: number;   // <--- Cambiado a number
 
-  @IsNumber()
   @IsNotEmpty()
-  longitude: number;
+  @IsLongitude() // Valida que sea una longitud real (-180 a 180)
+  @Type(() => Number)
+  longitude: number;  // <--- Cambiado a number
 
   @IsString()
   @IsOptional()
@@ -30,35 +27,33 @@ export class CreateIncidentDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(255)
-  photo_url?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(200)
   address_ref?: string;
+
+  // La foto se manejará por separado en el controller
 }
 
 export class UpdateIncidentDto {
-  @IsInt()
+  @IsNumber()
   @IsOptional()
   category_id?: number;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
   status_id?: number;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
   city_id?: number;
 
-  @IsNumber()
   @IsOptional()
-  latitude?: number;
+  @IsLatitude()
+  @Type(() => Number)
+  latitude?: number;  // <--- Cambiado a number
 
-  @IsNumber()
   @IsOptional()
-  longitude?: number;
+  @IsLongitude()
+  @Type(() => Number)
+  longitude?: number; // <--- Cambiado a number
 
   @IsString()
   @IsOptional()
@@ -66,11 +61,5 @@ export class UpdateIncidentDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(255)
-  photo_url?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(200)
   address_ref?: string;
 }
