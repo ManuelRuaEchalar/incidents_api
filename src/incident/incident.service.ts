@@ -7,15 +7,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SupabaseService } from 'src/supabase/supabase.service';
 import { CreateIncidentDto, UpdateIncidentDto } from './dto/incident.dto';
 
-// Nombre del bucket en Supabase (créalo como 'Public' en el dashboard de Supabase)
-const BUCKET_NAME = 'incidents';
+const BUCKET_NAME = 'incident-photos';
 
 @Injectable()
 export class IncidentService {
   constructor(
     private prisma: PrismaService,
     private supabase: SupabaseService,
-  ) {}
+  ) { }
 
   // --- CREAR INCIDENTE ---
   async create(
@@ -25,15 +24,19 @@ export class IncidentService {
   ) {
     let photoUrl: string | null = null;
 
-    // Si recibimos un archivo, lo subimos a Supabase
     if (photo) {
       photoUrl = await this.supabase.uploadFile(photo, BUCKET_NAME);
     }
 
     return this.prisma.incident.create({
       data: {
-        ...dto,
         user_id: userId,
+        category_id: dto.category_id, // Asegúrate de asignar esto explícitamente si no usas spread completo
+        city_id: dto.city_id,
+        latitude: dto.latitude,   // Aquí llegará un number
+        longitude: dto.longitude, // Aquí llegará un number
+        description: dto.description,
+        address_ref: dto.address_ref,
         photo_url: photoUrl,
       },
       include: {
@@ -56,7 +59,7 @@ export class IncidentService {
     return this.prisma.incident.findMany({
       select: {
         incident_id: true,
-        category: true, // Traemos el objeto completo de categoria
+        category: true,
         status: true,
         city: true,
         latitude: true,
@@ -67,7 +70,7 @@ export class IncidentService {
         created_at: true,
         user: {
           select: {
-            username: true, // Solo mostramos el nombre del usuario
+            username: true,
           },
         },
       },
@@ -132,28 +135,21 @@ export class IncidentService {
     dto: UpdateIncidentDto,
     photo?: Express.Multer.File,
   ) {
-    // 1. Buscamos el incidente actual
     const incident = await this.findOne(id);
 
-    // 2. Verificamos permisos (Solo dueño o Admin)
     if (role !== 'ADMIN' && incident.user_id !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
     let photoUrl = incident.photo_url;
 
-    // 3. Gestión de la foto
     if (photo) {
-      // A. Si ya tenía foto, borrar la vieja de Supabase
       if (incident.photo_url) {
         await this.supabase.deleteFile(incident.photo_url, BUCKET_NAME);
       }
-
-      // B. Subir la nueva foto
       photoUrl = await this.supabase.uploadFile(photo, BUCKET_NAME);
     }
 
-    // 4. Actualizar en DB
     return this.prisma.incident.update({
       where: { incident_id: id },
       data: {
@@ -179,27 +175,22 @@ export class IncidentService {
   async remove(id: number, userId: number, role: string) {
     const incident = await this.findOne(id);
 
-    // 1. Verificamos permisos
     if (role !== 'ADMIN' && incident.user_id !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
-    // 2. Si tiene foto, borrarla de Supabase Storage
     if (incident.photo_url) {
       await this.supabase.deleteFile(incident.photo_url, BUCKET_NAME);
     }
 
-    // 3. Eliminar registro de la DB
     return this.prisma.incident.delete({
       where: { incident_id: id },
     });
   }
 
-  // --- CAMBIAR ESTADO (SOLO ADMIN) ---
+  // --- CAMBIAR ESTADO ---
   async updateStatus(id: number, status_id: number) {
-    // Verificar que existe antes de actualizar
     await this.findOne(id);
-
     return this.prisma.incident.update({
       where: { incident_id: id },
       data: { status_id },

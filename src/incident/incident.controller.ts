@@ -8,7 +8,10 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  UseInterceptors, // <--- Importar
+  UploadedFile,    // <--- Importar
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express'; // <--- Importar
 import { IncidentService } from './incident.service';
 import { CreateIncidentDto, UpdateIncidentDto } from './dto/incident.dto';
 import { JwtGuard } from 'src/auth/guard';
@@ -20,11 +23,17 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 @UseGuards(JwtGuard)
 @Controller('incidents')
 export class IncidentController {
-  constructor(private readonly incidentService: IncidentService) {}
+  constructor(private readonly incidentService: IncidentService) { }
 
   @Post()
-  create(@GetUser() user: User, @Body() dto: CreateIncidentDto) {
-    return this.incidentService.create(user.user_id, dto);
+  @UseInterceptors(FileInterceptor('photo')) // <--- ESTO ES CRUCIAL. Permite leer el Body y el Archivo.
+  create(
+    @GetUser() user: User,
+    @Body() dto: CreateIncidentDto,
+    @UploadedFile() photo?: Express.Multer.File, // <--- Capturamos la foto aquí
+  ) {
+    // NestJS ya habrá convertido los strings de lat/lon a números gracias al main.ts
+    return this.incidentService.create(user.user_id, dto, photo);
   }
 
   // Obtener TODOS los incidentes (mapa público)
@@ -33,7 +42,7 @@ export class IncidentController {
     return this.incidentService.findAll();
   }
 
-  // Obtener solo MIS incidentes (sección "Mis Reportes")
+  // Obtener solo MIS incidentes
   @Get('my-incidents')
   findMyIncidents(@GetUser() user: User) {
     return this.incidentService.findMyIncidents(user.user_id);
@@ -45,12 +54,14 @@ export class IncidentController {
   }
 
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('photo')) // También necesario si actualizas foto
   update(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
     @Body() dto: UpdateIncidentDto,
+    @UploadedFile() photo?: Express.Multer.File,
   ) {
-    return this.incidentService.update(id, user.user_id, user.role, dto);
+    return this.incidentService.update(id, user.user_id, user.role, dto, photo);
   }
 
   @Delete(':id')

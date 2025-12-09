@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import cookieParser from 'cookie-parser'; // <--- Importar esto
+import { ValidationPipe } from '@nestjs/common'; // <--- IMPORTANTE
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -8,13 +9,23 @@ async function bootstrap() {
   // 1. Habilitar lectura de Cookies
   app.use(cookieParser());
 
-  // 2. Configuración CORS para Web + Móvil con Cookies
+  // 2. ACTIVAR VALIDACIÓN Y TRANSFORMACIÓN GLOBAL
+  // Esto hace que @Type(() => Number) funcione en tus DTOs
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Elimina campos que no estén en el DTO
+      transform: true, // Convierte los tipos (String -> Number) automáticamente
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  // 3. Configuración CORS
   app.enableCors({
-    // 'origin: true' es el truco. Permite que cualquier origen (Web puerto 4000, 
-    // o cualquier IP móvil) envíe credenciales sin usar '*' explícitamente.
-    origin: true, 
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // <--- Necesario para que las cookies viajen
+    credentials: true,
   });
 
   const port = process.env.PORT || 3000;
