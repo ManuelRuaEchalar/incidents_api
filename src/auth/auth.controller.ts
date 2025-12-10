@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res, Headers } from '@nestjs/common';
+import { Body, Controller, Post, Res, Headers, HttpCode } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { SignInDto, SignUpDto } from './dto';
@@ -46,6 +46,30 @@ export class AuthController {
     }
   }
 
+  @Post('logout')
+  @HttpCode(200) // Importante: logout debe devolver 200, no 204 si envías JSON
+  async logout(
+    @Headers('user-agent') userAgent: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const isMobile = this.isMobileClient(userAgent);
+
+    if (isMobile) {
+      // Cliente móvil (Flutter, etc.) → solo responde éxito
+      return { message: 'Sesión cerrada correctamente' };
+    } else {
+      // Cliente web → borramos la cookie HttpOnly
+      res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        path: '/', // Importante: mismo path que al crear la cookie
+      });
+
+      return { message: 'Sesión cerrada correctamente' };
+    }
+  }
+
   private isMobileClient(userAgent: string): boolean {
     // Detectar si es la app Flutter
     return userAgent?.toLowerCase().includes('dart') ||
@@ -56,9 +80,9 @@ export class AuthController {
     res.cookie('access_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      // CAMBIO CRÍTICO AQUÍ:
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 15 * 60 * 1000,
+      path: '/', // ← Asegúrate de usar el mismo path al borrar
     });
   }
 }
