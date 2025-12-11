@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsLatitude, IsLongitude } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsLatitude, IsLongitude, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 // Elimina la importación de @prisma/client... no la necesitas aquí.
 
@@ -25,6 +25,7 @@ export class CreateIncidentDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(2000)
   description?: string;
 
   @IsString()
@@ -62,6 +63,7 @@ export class UpdateIncidentDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(2000)
   description?: string;
 
   @IsString()
