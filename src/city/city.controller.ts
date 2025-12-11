@@ -15,10 +15,9 @@ import { JwtGuard } from 'src/auth/guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 
-@UseGuards(JwtGuard)
 @Controller('cities')
 export class CityController {
-  constructor(private readonly cityService: CityService) {}
+  constructor(private readonly cityService: CityService) { }
 
   @Post()
   @UseGuards(RolesGuard)

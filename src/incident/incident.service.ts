@@ -95,13 +95,6 @@ export class IncidentService {
     const incident = await this.prisma.incident.findUnique({
       where: { incident_id: id },
       include: {
-        user: {
-          select: {
-            user_id: true,
-            username: true,
-            email: true,
-          },
-        },
         category: true,
         status: true,
         city: true,
@@ -193,6 +186,27 @@ export class IncidentService {
         category: true,
         status: true,
         city: true,
+        // No incluimos photo_url aquí si no cambió, pero el front ya la tiene
+      },
+    });
+  }
+
+  // --- ESTADÍSTICAS POR CIUDAD ---
+  async getCityStats(cityId: number) {
+    return this.prisma.category.findMany({
+      select: {
+        category_id: true,
+        name: true,
+        description: true,
+        _count: {
+          select: {
+            incidents: {
+              where: {
+                city_id: cityId, // Filtramos los incidentes de esta ciudad
+              },
+            },
+          },
+        },
       },
     });
   }

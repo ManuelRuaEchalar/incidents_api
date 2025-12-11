@@ -20,12 +20,13 @@ import { type User } from '@prisma/client';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 
-@UseGuards(JwtGuard)
+
 @Controller('incidents')
 export class IncidentController {
   constructor(private readonly incidentService: IncidentService) { }
 
   @Post()
+  @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('photo')) // <--- ESTO ES CRUCIAL. Permite leer el Body y el Archivo.
   create(
     @GetUser() user: User,
@@ -44,6 +45,7 @@ export class IncidentController {
 
   // Obtener solo MIS incidentes
   @Get('my-incidents')
+  @UseGuards(JwtGuard)
   findMyIncidents(@GetUser() user: User) {
     return this.incidentService.findMyIncidents(user.user_id);
   }
@@ -54,6 +56,7 @@ export class IncidentController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('photo')) // También necesario si actualizas foto
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -65,17 +68,24 @@ export class IncidentController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtGuard)
   remove(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
     return this.incidentService.remove(id, user.user_id, user.role);
   }
 
   @Patch(':id/status')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN')
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('status_id', ParseIntPipe) status_id: number,
   ) {
     return this.incidentService.updateStatus(id, status_id);
+  }
+
+  // Estadísticas por Ciudad
+  @Get('city-stats/:cityId')
+  getCityStats(@Param('cityId', ParseIntPipe) cityId: number) {
+    return this.incidentService.getCityStats(cityId);
   }
 }

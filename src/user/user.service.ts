@@ -1,18 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EditUserDto } from './dto/edit-user.dto';
-import * as argon2 from 'argon2';
+import { WorkersService } from 'src/workers/workers.service';
 
 @Injectable()
 export class UserService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private workers: WorkersService,
+    ) { }
 
     async editUser(userId: number, dto: EditUserDto) {
         const updateData: any = { ...dto };
 
         // Si el usuario quiere cambiar la contraseña
+        // Hash en Worker Thread para no bloquear el Event Loop
         if (dto.password) {
-            updateData.password_hash = await argon2.hash(dto.password);
+            updateData.password_hash = await this.workers.hashPassword(dto.password);
             // No enviamos el password en plano a Prisma
             delete updateData.password;
         }

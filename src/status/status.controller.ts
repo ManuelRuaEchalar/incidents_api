@@ -15,12 +15,13 @@ import { JwtGuard } from 'src/auth/guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 
-@UseGuards(JwtGuard)
+
 @Controller('statuses')
 export class StatusController {
-  constructor(private readonly statusService: StatusService) {}
+  constructor(private readonly statusService: StatusService) { }
 
   @Post()
+  @UseGuards(JwtGuard)
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   create(@Body() dto: CreateStatusDto) {
@@ -38,6 +39,7 @@ export class StatusController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtGuard)
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateStatusDto) {
@@ -45,6 +47,7 @@ export class StatusController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtGuard)
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   remove(@Param('id', ParseIntPipe) id: number) {
