@@ -33,6 +33,11 @@ export class IncidentController {
     @Body() dto: CreateIncidentDto,
     @UploadedFile() photo?: Express.Multer.File, // <--- Capturamos la foto aquí
   ) {
+    // Decodificar Base64 para saltar el WAF de Vercel (si viene codificado)
+    if (dto.description) {
+      dto.description = Buffer.from(dto.description, 'base64').toString('utf-8');
+    }
+
     // NestJS ya habrá convertido los strings de lat/lon a números gracias al main.ts
     return this.incidentService.create(user.user_id, dto, photo);
   }
@@ -64,6 +69,10 @@ export class IncidentController {
     @Body() dto: UpdateIncidentDto,
     @UploadedFile() photo?: Express.Multer.File,
   ) {
+    if (dto.description) {
+      dto.description = Buffer.from(dto.description, 'base64').toString('utf-8');
+    }
+
     return this.incidentService.update(id, user.user_id, user.role, dto, photo);
   }
 

@@ -25,7 +25,7 @@ export class CreateIncidentDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(2000)
+  @MaxLength(4000) // Aumentamos límite para soportar overhead de Base64
   description?: string;
 
   @IsString()
@@ -63,7 +63,7 @@ export class UpdateIncidentDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(2000)
+  @MaxLength(4000)
   description?: string;
 
   @IsString()
