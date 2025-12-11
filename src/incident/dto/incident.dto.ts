@@ -5,10 +5,12 @@ import { Type } from 'class-transformer';
 export class CreateIncidentDto {
   @IsNumber()
   @IsNotEmpty()
+  @Type(() => Number)
   category_id: number;
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   city_id?: number;
 
   @IsNotEmpty()
@@ -35,14 +37,17 @@ export class CreateIncidentDto {
 export class UpdateIncidentDto {
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   category_id?: number;
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   status_id?: number;
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   city_id?: number;
 
   @IsOptional()
