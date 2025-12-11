@@ -1,5 +1,11 @@
 {
     "version": 2,
+    "functions": {
+        "src/main.ts": {
+            "maxDuration": 30,
+            "memory": 1024
+        }
+    },
     "builds": [
         {
             "src": "src/main.ts",
