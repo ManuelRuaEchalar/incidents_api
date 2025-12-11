@@ -1,9 +1,9 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { SignUpDto, SignInDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { WorkersService } from 'src/workers/workers.service';
+import { WorkersService } from '../workers/workers.service';
 
 @Injectable()
 export class AuthService {

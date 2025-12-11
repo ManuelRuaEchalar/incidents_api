@@ -3,8 +3,8 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { SupabaseService } from 'src/supabase/supabase.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import { CreateIncidentDto, UpdateIncidentDto } from './dto/incident.dto';
 
 const BUCKET_NAME = 'incident-photos';

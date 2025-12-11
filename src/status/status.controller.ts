@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import { StatusService } from './status.service';
 import { CreateStatusDto, UpdateStatusDto } from './dto/status.dto';
-import { JwtGuard } from 'src/auth/guard';
-import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { JwtGuard } from '../auth/guard';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
 
 
 @Controller('statuses')

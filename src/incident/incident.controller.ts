@@ -14,11 +14,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'; // <--- Importar
 import { IncidentService } from './incident.service';
 import { CreateIncidentDto, UpdateIncidentDto } from './dto/incident.dto';
-import { JwtGuard } from 'src/auth/guard';
-import { GetUser } from 'src/auth/decorator';
+import { JwtGuard } from '../auth/guard';
+import { GetUser } from '../auth/decorator';
 import { type User } from '@prisma/client';
-import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
 
 
 @Controller('incidents')
